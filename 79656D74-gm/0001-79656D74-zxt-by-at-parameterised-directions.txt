@@ -1,0 +1,73 @@
+# 79656D74:0001 - `by`/`at` parameterised directions
+DRAFT.
+
+## Information
+
+* ID: 79656D74:0001
+
+## Flags
+
+|-------------------|------------|
+| Flag              | Set?       |
+|-------------------|------------|
+| `parsing_must`    | MUST NOT   |
+| `reading_must`    | MUST NOT   |
+| `writing_must`    | MUST NOT   |
+| `playing_should`  | SHOULD     |
+| `playing_must`    | SHOULD     |
+| `editing_should`  | MUST NOT   |
+| `preserve_should` | SHOULD     |
+|-------------------|------------|
+
+## Field data
+
+None.
+
+This extension block SHOULD appear no more than once.
+
+## Description
+
+This extension adds two OOP directions to the language:
+
+* `by <x> <y>`: Given two signed 16-bit numbers, use said numbers as a direct relative step.
+* `at <x> <y>`: Given two signed 16-bit numbers, from the stat's position, compute a relative step such that if such a step were taken from the stat's position, it would end up at the given absolute based position on the board.
+
+For ZZT, (1, 1) is the top-left corner of the board, while (60, 25) is the bottom-right corner.
+
+If a position is out-of-range, it is to be treated as per the implementation's out-of-bounds behaviour.
+
+## Compatibility
+
+If this extension block is absent:
+
+* The `by` and `at` directions MUST be hidden.
+
+## Rationales
+
+On their own, these two directions are best described as "quite nice". However, when paired with other extensions, they can be surprisingly powerful.
+
+* 79656D74:0002 "`#putplayer`" allows one to move the player (or whatever the first stat is) to a given position.
+
+## Example usage
+
+```
+/at 30 12
+#walk by 2 1
+/i/i/i/i/i
+#walk by 2 -1
+/i/i/i/i/i
+#walk by -4 0
+/i/i/i/i/i
+#walk i
+#put at 1 1 red key
+#put at 2 1 green key
+#put at 3 1 blue key
+#put by -2 -2 red solid
+#put by  2 -2 red solid
+#put by  2  2 red solid
+#put by -2  2 red solid
+```
+
+## Implementations
+
+TODO.

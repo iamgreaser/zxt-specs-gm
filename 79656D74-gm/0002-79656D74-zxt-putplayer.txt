@@ -1,0 +1,76 @@
+# 79656D74:0002 - `#putplayer`
+DRAFT.
+
+## Information
+
+* ID: 79656D74:0002
+
+## Flags
+
+|-------------------|------------|
+| Flag              | Set?       |
+|-------------------|------------|
+| `parsing_must`    | MUST NOT   |
+| `reading_must`    | MUST NOT   |
+| `writing_must`    | MUST NOT   |
+| `playing_should`  | SHOULD     |
+| `playing_must`    | SHOULD     |
+| `editing_should`  | MUST NOT   |
+| `preserve_should` | SHOULD     |
+|-------------------|------------|
+
+## Field data
+
+None.
+
+This extension block SHOULD appear no more than once.
+
+## Description
+
+This extension adds one OOP command to the language:
+
+* `#putplayer <dir>`: Given a direction, put a player there.
+
+## Compatibility
+
+If this extension block is absent:
+
+* `#putplayer <dir>` MUST be hidden.
+
+## Rationales
+
+This eliminates one of the most common uses of player clones.
+
+## Example usage
+
+Two objects, cycle 1 of course. Ideal stat order is `teleentry` coming some time before `teleexit`.
+
+```
+@teleentry
+#end
+:touch
+#send teleexit:warp
+#end
+```
+
+```
+@teleexit
+#end
+:warp
+#putplayer e
+#put e empty
+#end
+```
+
+Alternatively, when paired with 79656D74:0001 "`by`/`at` parameterised directions", we can do this using one object:
+
+```
+#end
+:touch
+#putplayer at 20 12
+#end
+```
+
+## Implementations
+
+TODO.

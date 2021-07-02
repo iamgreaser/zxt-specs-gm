@@ -1,0 +1,151 @@
+# 79656D74:0003 - Key counters and limits
+DRAFT.
+
+## Information
+
+* ID: 79656D74:0003
+
+## Flags
+
+|-------------------|------------|
+| Flag              | Set?       |
+|-------------------|------------|
+| `parsing_must`    | MUST NOT   |
+| `reading_must`    | MUST NOT   |
+| `writing_must`    | MUST NOT   |
+| `playing_should`  | SHOULD     |
+| `playing_must`    | SHOULD     |
+| `editing_should`  | SHOULD     |
+| `preserve_should` | SHOULD     |
+|-------------------|------------|
+
+## Field data
+
+A structure of 2 bytes is present:
+
+* 0x0000: `u16` `max_keys`: Maximum number of duplicate keys one may hold. Currently MUST be from 1 inclusive to 255 inclusive, anything out of this range will be classified as unsupported.
+
+If more than one of these extension blocks are present and valid, then the valid block with the largest `max_keys` value takes priority.
+
+## Description
+
+This extension overhauls behaviours of keys and adds 8 8-bit counters with special limit constraints.
+
+Keys are no longer booleans. Instead, they are `u8` values.
+
+Behaviour of keys and doors changes here:
+
+* Collecting a key now attempts to increment the relevant counter instead of setting it to 1.
+* Unlocking a door now attempts to decrement the relevant counter instead of setting it to 0.
+
+The following 8-bit counters are added:
+
+* `bluekeys`
+* `greenkeys`
+* `cyankeys`
+* `redkeys`
+* `purplekeys`
+* `yellowkeys`
+* `whitekeys`
+* `blackkeys` (not recommended unless you know what you're doing OR you're using a suitable extension)
+
+Range checks are applied like so:
+
+* Collecting a key: The key is collected if and only if the resulting key counter would be no more than `max_keys`,
+* Unlocking a door: The door is unlocked if and only if the resulting key counter would not go lower than 0 in theory.
+* `#give` and `#take`: The operation succeeds if and only if the resulting key counter is at least 0 and at most `max_keys`.
+
+Item behaviour remains consistent with `#give`/`#take` behaviour when the relevant key counters start out within their expected range. If a key counter ever goes out of range, then there can be divergence.
+
+### Black keys
+
+Unless modified by an extension, the black key count uses the same byte as the second-least-significant byte of the gems counter.
+
+Updating the `blackkeys` counter, collecting a black key, or using a black key to unlock a door will all update the gem counter display if and only if the black key counter is embedded into the upper byte of the gems counter.
+
+## Compatibility
+
+If this extension block is absent:
+
+* `max_keys` SHOULD default to 1, although one may want to allow it to be 255 for quality-of-life purposes.
+* The `*keys` counters provided by this extension MUST be hidden.
+* As a further constraint, if `max_keys` is 1, unlocking a door successfully SHOULD set the relevant key counter to 0. Note that this constraint MUST NOT be applied if the extension block is present.
+
+Having `max_keys` set to 1 is most likely equivalent to vanilla ZZT as long as all key counters remain within their intended ranges. Under normal gameplay, the only type of key that can break this rule is a black key. With the "set it to 0" constraint applied, it is most likely that vanilla behaviour is achieved in all cases.
+
+("Most likely" means I need to actually provide a proof. --GM)
+
+## Rationales
+
+This allows one to not need to backtrack so much because lol.
+
+This also eliminates needing to use player clones to set and clear keys unconditionally. GreaseMonkey used to have a stat-order-abuse-heavy contraption for emptying a player's keys while tracking which keys were extracted for the purposes of making a world swap code system. It may still exist, although the aim should be to render this pointless. (Perhaps I should dig that up some time. It'll likely involve needing to boot up an old laptop though. --GM)
+
+The `blackkeys` counter is provided in case another extension gives black keys their own byte. Furthermore, even if such a thing is not being used, it allows one to apply the key limits as opposed to the gem limits.
+
+The difference in behaviour between the items and the commands boils down to these things:
+
+* If one has any keys of a given colour, then one MUST be able to unlock a door.
+* In order to not complicate future extensions, it is easier to say "this counter has a minimum and a maximum when fed through `#give` and `#take`" than it is to say "this counter behaves differently between subtracting values and adding values" - the former behaviour is closer to what actually happens than the latter, as `#take` is treated as a negative `#give` in vanilla ZZT.
+
+## Example usage
+
+A blue keycard door.
+
+```
+#end
+:touch
+#take bluekey 1 fail
+#give bluekey 1
+#lock
+The BLUE keycard door opens.
+/n/n/i/i/i/i/i/i/i/i/i/i/s/s
+#unlock
+#end
+:fail
+This door needs a BLUE keycard!
+#end
+```
+
+A keycard holder which can hold either blue or red keycards. This prioritises blue over red. Being able to choose between the two is an exercise left to the reader.
+
+```
+#end
+
+:touch
+#send hasblue
+#send hasred
+#take bluekey 1 notblue
+#restore hasblue
+BLUE keycard inserted.
+#end
+:notblue
+#take redkey 1 notred
+#restore hasred
+RED keycard inserted.
+#end
+:notred
+Insert a BLUE or RED keycard.
+#end
+
+'hasblue
+#give bluekey 1 failblue
+#zap hasblue
+BLUE keycard removed.
+#end
+:failblue
+You already have a BLUE keycard!
+#end
+'hasred
+#give redkey 1 failred
+#zap hasred
+BLUE keycard removed.
+#end
+:failred
+You already have a BLUE keycard!
+#end
+```
+
+## Implementations
+
+TODO.
