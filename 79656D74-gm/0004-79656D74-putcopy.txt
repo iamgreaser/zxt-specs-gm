@@ -1,0 +1,66 @@
+# 79656D74:0004 - `#putcopy`
+DRAFT.
+
+## Information
+
+* ID: 79656D74:0004
+
+## Flags
+
+|-------------------|------------|
+| Flag              | Set?       |
+|-------------------|------------|
+| `parsing_must`    | MUST NOT   |
+| `reading_must`    | MUST NOT   |
+| `writing_must`    | MUST NOT   |
+| `playing_should`  | SHOULD     |
+| `playing_must`    | SHOULD     |
+| `editing_should`  | MUST NOT   |
+| `preserve_should` | SHOULD     |
+|-------------------|------------|
+
+## Field data
+
+None.
+
+This extension block SHOULD appear no more than once.
+
+## Description
+
+This extension adds one OOP command to the language:
+
+* `#putcopy <todir> <fromdir> <pushdir> [<startlabel>]`: Duplicate the tile with suitable stats at `<fromdir>` to `<todir>`, sending it to `<startlabel>` bypassing lock status if the argument is provided.
+
+Duplication behaves identically to how a duplicator behaves, except a sound effect MUST NOT be played as a result of duplication or failing to duplicate. `<pushdir>` is used as the push direction where needed.
+
+If `<pushdir>` is `IDLE` or `I`, then one SHOULD also have the 00000001:0004 "FIX: Crash when element is recursively pushing itself" extension, and in fact one really should have extension that anyway.
+
+Failure to duplicate is ignored.
+
+`<startlabel>` is sent to the first stat found at `<todir>` if it exists. Sending `<startlabel>` behaves identically to executing `#send <startlabel>` as if it were executed on the target stat, ignoring the lock on the stat.
+
+A further elaboration: Because duplication behaves identically to how a duplicator behaves, `#putcopy` with a `<fromdir>` pointing to a player clone will perform an element touch on whatever's at `<todir>`.
+
+## Compatibility
+
+If this extension block is absent:
+
+* `#putcopy <todir> <fromdir> <pushdir> [<startlabel>]` MUST be hidden.
+
+## Rationales
+
+This eliminates needing to actually use a duplicator for a lot of things, complete with its slowness and its inability to be moved around.
+
+This also covers the case where someone wants to implement something like MegaZeux's `duplicate self <dir>` without having to actually use a duplicator.
+
+Basically, duplicators kinda suck, let's make them unnecessary.
+
+Best paired with 79656D74:0001 "`by`/`at` parameterised directions" as usual.
+
+## Example usage
+
+TODO.
+
+## Implementations
+
+TODO.
